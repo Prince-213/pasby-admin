@@ -24,6 +24,8 @@ const ModalDetail = ({
 }) => {
   const queryClient = useQueryClient();
 
+  const creatNewActivated = async () => {};
+
   const mutation = useMutation({
     mutationFn: () => {
       return postPasby({ body: info });
@@ -31,6 +33,17 @@ const ModalDetail = ({
     onSuccess: () => {
       // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: ["pending"] });
+    },
+
+    async onSettled(data, error, variables, context) {
+      await prisma.activated.create({
+        data: {
+          name: data?.data.id.naming.name || "",
+          gender: data?.data.id.bio.gender || "",
+          nin: data?.data.id.nin || "",
+          activator: data?.data.activator || "",
+        },
+      });
     },
   });
 
@@ -64,7 +77,10 @@ const ModalDetail = ({
               >
                 Discard
               </button>
-              <button className=" flex items-center space-x-2 py-3 px-4 rounded-xl bg-pasby text-white font-medium">
+              <button
+                onClick={() => mutation.mutate}
+                className=" flex items-center space-x-2 py-3 px-4 rounded-xl bg-pasby text-white font-medium"
+              >
                 {mutation.isPending ? (
                   <Loader className=" animate-spin" />
                 ) : mutation.isSuccess ? (
